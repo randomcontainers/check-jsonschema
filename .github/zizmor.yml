@@ -1,0 +1,7 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The shared build workflow is released from randomcontainers/ci under
+        # a protected major tag.
+        "randomcontainers/*": ref-pin
