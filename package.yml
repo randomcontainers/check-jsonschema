@@ -1,0 +1,179 @@
+name: check-jsonschema
+title: check-jsonschema
+summary: Validates JSON, YAML and TOML files against a JSON Schema, with built-in schemas for GitHub Actions, GitLab CI, Renovate, Dependabot and more.
+homepage: https://github.com/python-jsonschema/check-jsonschema
+# check-jsonschema, the Python packages installed with it, pip and the packages
+# it vendors, the Rust crates and standard library linked into rpds-py and
+# regress (Apache-2.0 WITH LLVM-exception is for compiler-builtins), and the
+# libgcc_s that their musllinux wheels include on Alpine (see licenses/; its
+# sources are the extra artifacts below). AGPL-3.0-only, GPL-3.0-only and
+# CC-BY-4.0 are here only for schema files that check-jsonschema ships for
+# --builtin-schema: the Renovate, Snapcraft and Citation File Format schemas.
+license: Apache-2.0 AND MIT AND BSD-2-Clause AND BSD-3-Clause AND ISC AND MPL-2.0 AND PSF-2.0 AND Apache-2.0 WITH LLVM-exception AND AGPL-3.0-only AND GPL-3.0-only AND CC-BY-4.0 AND GPL-3.0-or-later WITH GCC-exception-3.1
+source-release: true
+upstream:
+  source: pypi
+  project: check-jsonschema
+  tag-pattern: '^(\d+\.\d+\.\d+)$'
+  version-template: '{1}'
+  versioning: semver
+  version: 0.38.2
+  cooldown: 24h
+  publisher: python-jsonschema/check-jsonschema
+  # The sources of the libgcc_s in the musllinux wheels of rpds-py and regress:
+  # GCC, built by musl-cross-make with the config.mak of rust-musl-cross in the
+  # ghcr.io/rust-cross/rust-musl-cross images that the wheels were built in.
+  # Change them together with TOOLCHAIN in scripts/check-libraries.py.
+  extra-artifacts:
+    gcc:
+      version: 12.4.0
+      url: https://gcc.gnu.org/pub/gcc/releases/gcc-{version}/gcc-{version}.tar.xz
+      signature: https://gcc.gnu.org/pub/gcc/releases/gcc-{version}/gcc-{version}.tar.xz.sig
+      sha256: 704f652604ccbccb14bdabf3478c9511c89788b12cb3bbffded37341916a9175
+      distros: [alpine]
+    musl-cross-make:
+      version: 227df8b99103f9c59f6570babf892978e293082f
+      url: https://github.com/richfelker/musl-cross-make/archive/{version}.tar.gz
+      sha256: bb3fc7851088e1e5e1274ee56a0ab6ae176043d160fdf0b71027934b091f208a
+      distros: [alpine]
+    rust-musl-cross:
+      version: dd6e34ffc1cb5a142e762429cc11cfb4efbdd0e6
+      url: https://github.com/rust-cross/rust-musl-cross/archive/{version}.tar.gz
+      sha256: e6ff3e13b9da8bebd5381a1e612d1f011fbd12a60d4469c65b5d7df9cddc322f
+      distros: [alpine]
+image:
+  entrypoint: [check-jsonschema]
+  cmd: [--help]
+  env: {PYTHONUNBUFFERED: "1"}
+test:
+  - |
+    check-jsonschema --version > version.txt
+    expected="check-jsonschema, version $VERSION"
+    if [ "$(cat version.txt)" != "$expected" ]; then
+      echo "expected '$expected', got '$(cat version.txt)'" >&2
+      exit 1
+    fi
+  - |
+    # Built-in schemas: a valid workflow, an invalid one, and the stricter custom schema.
+    mkdir -p workflows
+    printf '%s\n' 'name: ci' 'on: push' 'jobs:' '  test:' '    runs-on: ubuntu-latest' '    steps:' '      - run: echo hello' > workflows/ok.yml
+    rc=0; check-jsonschema --builtin-schema vendor.github-workflows workflows/ok.yml > workflow-ok.txt || rc=$?
+    if [ "$rc" != 0 ] || ! grep -qxF 'ok -- validation done' workflow-ok.txt; then
+      echo "expected exit code 0 and \"ok -- validation done\" for workflows/ok.yml, got $rc:" >&2; cat workflow-ok.txt >&2; exit 1
+    fi
+    sed 's/runs-on: ubuntu-latest/runs-on: 5/' workflows/ok.yml > workflows/bad.yml
+    rc=0; check-jsonschema --builtin-schema vendor.github-workflows workflows/bad.yml > workflow-bad.txt || rc=$?
+    if [ "$rc" != 1 ] || ! grep -qxF 'Schema validation errors were encountered.' workflow-bad.txt \
+        || ! grep -qF "\$.jobs.test['runs-on']" workflow-bad.txt; then
+      echo "expected exit code 1 and an error at \$.jobs.test['runs-on'] for workflows/bad.yml, got $rc:" >&2
+      cat workflow-bad.txt >&2; exit 1
+    fi
+    rc=0; check-jsonschema --verbose --builtin-schema custom.github-workflows-require-timeout workflows/ok.yml > workflow-timeout.txt || rc=$?
+    if [ "$rc" != 1 ] || ! grep -qxF 'Schema validation errors were encountered.' workflow-timeout.txt \
+        || ! grep -qF "'timeout-minutes' is a required property" workflow-timeout.txt; then
+      echo "expected exit code 1 and \"'timeout-minutes' is a required property\" for a job without timeout-minutes, got $rc:" >&2
+      cat workflow-timeout.txt >&2; exit 1
+    fi
+  - |
+    # A local schema whose pattern uses a Unicode property escape, which Python's re
+    # cannot compile: matching it needs regress. YAML, TOML and JSON instances.
+    printf '%s\n' '{"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "required": ["name"],' \
+      '"properties": {"name": {"type": "string", "pattern": "^\\p{Lu}+$"}, "count": {"type": "integer", "minimum": 1}}}' > schema.json
+    printf '%s\n' 'name: "ÄBC"' 'count: 2' > good.yaml
+    printf '%s\n' 'name = "ÄBC"' 'count = 2' > good.toml
+    printf '%s\n' '{"name": "ÄBC", "count": 2}' > good.json
+    printf '%s\n' 'name: abc' > bad.yaml
+    printf '%s\n' 'name = "ABC"' 'count = 0' > bad.toml
+    printf '%s\n' '{"count": 2}' > bad.json
+    for file in good.yaml good.toml good.json; do
+      rc=0; check-jsonschema -o json --schemafile schema.json "$file" > "$file.out" || rc=$?
+      if [ "$rc" != 0 ] || ! grep -q '"status": *"ok"' "$file.out"; then
+        echo "expected exit code 0 and status ok for $file, got $rc:" >&2; cat "$file.out" >&2; exit 1
+      fi
+    done
+    for file in bad.yaml bad.toml bad.json; do
+      rc=0; check-jsonschema -o json --schemafile schema.json "$file" > "$file.out" || rc=$?
+      if [ "$rc" != 1 ] || ! grep -q '"status": *"fail"' "$file.out"; then
+        echo "expected exit code 1 and status fail for $file, got $rc:" >&2; cat "$file.out" >&2; exit 1
+      fi
+    done
+    rc=0; check-jsonschema --check-metaschema schema.json > metaschema.txt || rc=$?
+    if [ "$rc" != 0 ] || ! grep -qxF 'ok -- validation done' metaschema.txt; then
+      echo "expected exit code 0 and \"ok -- validation done\" for the metaschema check, got $rc:" >&2; cat metaschema.txt >&2; exit 1
+    fi
+  - |
+    # GitLab's !reference tag parses only with the gitlab-ci data transform.
+    printf '%s\n' '.setup:' '  script:' '    - echo setup' 'test:' '  script:' '    - !reference [.setup, script]' '    - echo test' > .gitlab-ci.yml
+    rc=0; check-jsonschema --builtin-schema vendor.gitlab-ci --data-transform gitlab-ci .gitlab-ci.yml > gitlab.txt || rc=$?
+    if [ "$rc" != 0 ] || ! grep -qxF 'ok -- validation done' gitlab.txt; then
+      echo "expected exit code 0 and \"ok -- validation done\" for .gitlab-ci.yml, got $rc:" >&2; cat gitlab.txt >&2; exit 1
+    fi
+    rc=0; check-jsonschema --builtin-schema vendor.gitlab-ci .gitlab-ci.yml > gitlab-plain.txt || rc=$?
+    if [ "$rc" != 1 ] || ! grep -qF 'failed to parse' gitlab-plain.txt; then
+      echo "expected a parse error without --data-transform, got $rc:" >&2; cat gitlab-plain.txt >&2; exit 1
+    fi
+  - |
+    # A schema served over HTTP with a relative $ref: both downloads land in the cache.
+    mkdir remote
+    printf '%s\n' '{"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "required": ["name"], "properties": {"name": {"$ref": "name.json"}}}' > remote/schema.json
+    printf '%s\n' '{"type": "string", "minLength": 2}' > remote/name.json
+    printf '%s\n' 'name: remote' > remote-ok.yaml
+    printf '%s\n' 'name: x' > remote-bad.yaml
+    python=/usr/local/lib/check-jsonschema/bin/python3
+    "$python" -m http.server -b 127.0.0.1 -d remote 8403 > /dev/null 2>&1 &
+    server=$!
+    trap 'kill "$server"' EXIT
+    url=http://127.0.0.1:8403/schema.json
+    "$python" -c 'import sys, time, urllib.request
+    for _ in range(100):
+        try:
+            urllib.request.urlopen(sys.argv[1], timeout=5).close()
+            break
+        except OSError:
+            time.sleep(0.1)
+    else:
+        sys.exit("the HTTP server did not start")' "$url"
+    rc=0; check-jsonschema --schemafile "$url" remote-ok.yaml > remote-ok.txt || rc=$?
+    if [ "$rc" != 0 ] || ! grep -qxF 'ok -- validation done' remote-ok.txt; then
+      echo "expected exit code 0 and \"ok -- validation done\" with the remote schema, got $rc:" >&2; cat remote-ok.txt >&2; exit 1
+    fi
+    for dir in schemas refs; do
+      if [ -z "$(find "$XDG_CACHE_HOME/check_jsonschema/$dir" -type f 2>/dev/null)" ]; then
+        echo "expected a downloaded file in $XDG_CACHE_HOME/check_jsonschema/$dir" >&2; exit 1
+      fi
+    done
+    rc=0; check-jsonschema --no-cache --schemafile "$url" remote-bad.yaml > remote-bad.txt || rc=$?
+    if [ "$rc" != 1 ] || ! grep -qxF 'Schema validation errors were encountered.' remote-bad.txt; then
+      echo "expected exit code 1 for remote-bad.yaml with --no-cache, got $rc:" >&2; cat remote-bad.txt >&2; exit 1
+    fi
+examples:
+  - title: Check the GitHub Actions workflows of a repository
+    command: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" ghcr.io/randomcontainers/check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
+  - title: Check the Dependabot configuration
+    command: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" ghcr.io/randomcontainers/check-jsonschema --builtin-schema vendor.dependabot .github/dependabot.yml
+  - title: Check a Renovate configuration
+    command: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" ghcr.io/randomcontainers/check-jsonschema --builtin-schema vendor.renovate renovate.json
+  - title: Check GitLab CI configuration that uses !reference tags
+    command: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" ghcr.io/randomcontainers/check-jsonschema --builtin-schema vendor.gitlab-ci --data-transform gitlab-ci .gitlab-ci.yml
+  - title: Validate YAML files against your own schema
+    command: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" ghcr.io/randomcontainers/check-jsonschema --schemafile schema.json data.yaml
+combos:
+  - with: [yamllint]
+    base: check-jsonschema
+    summary: check-jsonschema with yamllint, to lint YAML files and validate them against a JSON Schema in one image.
+    test:
+      - |
+        # yamllint checks the syntax and formatting of a workflow, check-jsonschema its structure.
+        mkdir -p .github/workflows
+        printf '%s\n' '---' 'name: ci' '"on": push' 'jobs:' '  test:' '    runs-on: ubuntu-latest' '    timeout-minutes: 10' \
+          '    steps:' '      - run: echo hello' > .github/workflows/ci.yml
+        rc=0; yamllint --strict -f parsable .github/workflows/ci.yml > combo-yamllint.txt || rc=$?
+        if [ "$rc" != 0 ] || [ -s combo-yamllint.txt ]; then
+          echo "expected exit code 0 and no yamllint problems, got $rc:" >&2; cat combo-yamllint.txt >&2; exit 1
+        fi
+        for schema in vendor.github-workflows custom.github-workflows-require-timeout; do
+          rc=0; check-jsonschema --builtin-schema "$schema" .github/workflows/ci.yml > combo-schema.txt || rc=$?
+          if [ "$rc" != 0 ] || ! grep -qxF 'ok -- validation done' combo-schema.txt; then
+            echo "expected exit code 0 and \"ok -- validation done\" with $schema, got $rc:" >&2; cat combo-schema.txt >&2; exit 1
+          fi
+        done
