@@ -1,0 +1,101 @@
+regress 2026.9.1 is a Rust extension module built with PyO3. Its Linux
+wheels link a static build of the Rust crates below but include only
+regress's own license. The crates are the dependencies of the extension
+crate regress-py in the Cargo.lock of the source release that are linked on
+Linux; build dependencies and procedural macros run only while building and
+are left out. Each directory holds the license files from the crate's
+archive on crates.io, and the license after each crate is the one it
+declares.
+
+The extension module also links the Rust standard library. Its .comment
+section reads "rustc version 1.98.1 (48a229cea 2026-09-01)". The Rust entry
+below is the rust-src archive of that release, with the SHA-256 from its
+.sha256 file, and the rust-std-1.98.1 directory holds the license files of
+rust-lang/rust and every license file in the archive's library tree. Under
+the Rust entry are the standard library's own crates that have code in the
+extension module, with the licenses they declare. The crates after it are
+the standard library's dependencies from crates.io that have code in the
+module, checked against the checksums in its Cargo.lock; their license files
+are in rust-std-1.98.1 as well. Code is assigned to crates by the names of
+the module's code units and the source paths in its panic messages.
+
+The musllinux wheels, which the Alpine image installs, also include
+libgcc_s, which the Rust code needs for unwinding:
+regress.libs/libgcc_s-0bf60adc.so.1 (aarch64-musl) and
+regress.libs/libgcc_s-f685abf1.so.1 (x86_64-musl). It is licensed under
+GPL-3.0-or-later with the GCC Runtime Library Exception 3.1, and both texts
+are in the libgcc directory, taken from GCC's repository at release 12.4.0.
+Its .comment section reads "GCC: (GNU) 12.4.0". maturin copied it from the
+ghcr.io/rust-cross/rust-musl-cross image that built the wheel, and the hex
+digits in its name are the start of the original's SHA-256: the
+libgcc_s.so.1 of the images that rust-musl-cross built from the commit
+below. Those images build GCC with musl-cross-make, which applies its own
+patches to GCC, and with the config.mak of rust-musl-cross. The last three
+entries below are the corresponding source of the library: the GCC release,
+and the two repositories at the commits used. They are attached to the
+GitHub release of each version of the image, which the last line of the
+image's source file links to.
+
+regress 2026.9.1
+  https://files.pythonhosted.org/packages/52/5e/92af2a5d1922e802a1b369fad04e404a0253d7683ed0f637a263cb9de575/regress-2026.9.1.tar.gz
+  sha256:e7b547386bf97b82a23e62471272742492c0b2de62cf0ee98247fd37cc42f169
+libc 0.2.175 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/libc/libc-0.2.175.crate
+  sha256:6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543
+memchr 2.7.5 (Unlicense OR MIT)
+  https://static.crates.io/crates/memchr/memchr-2.7.5.crate
+  sha256:32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0
+once_cell 1.21.3 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/once_cell/once_cell-1.21.3.crate
+  sha256:42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d
+pyo3 0.29.2 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/pyo3/pyo3-0.29.2.crate
+  sha256:4688ddedf473e32662b9b067670129a8afb8c18e351482c70d62ba4a88171e8b
+pyo3-ffi 0.29.2 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/pyo3-ffi/pyo3-ffi-0.29.2.crate
+  sha256:e591a95526fead067432c3b3a33fc74770b87b1e04e73671090d9c2055a2b327
+regress 0.12.0 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/regress/regress-0.12.0.crate
+  sha256:32eef8b209c3c1c15dbad02c1f30f9539f00dc7253e0cbcdaae442a50a09d7c1
+Rust 1.98.1 standard library
+  https://static.rust-lang.org/dist/rust-src-1.98.1.tar.xz
+  sha256:5c846ebcebcc7e2e0777a4cdaa12051691593f16a7e94edbae5e6241cc62d98c
+  alloc (MIT OR Apache-2.0)
+  compiler_builtins (MIT AND Apache-2.0 WITH LLVM-exception AND (MIT OR Apache-2.0))
+  core (MIT OR Apache-2.0)
+  panic_unwind (MIT OR Apache-2.0)
+  std (MIT OR Apache-2.0)
+  std_detect (MIT OR Apache-2.0)
+addr2line 0.25.1 (Apache-2.0 OR MIT)
+  https://static.crates.io/crates/addr2line/addr2line-0.25.1.crate
+  sha256:1b5d307320b3181d6d7954e663bd7c774a838b8220fe0593c86d9fb09f498b4b
+adler2 2.0.1 (0BSD OR MIT OR Apache-2.0)
+  https://static.crates.io/crates/adler2/adler2-2.0.1.crate
+  sha256:320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa
+gimli 0.32.3 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/gimli/gimli-0.32.3.crate
+  sha256:e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7
+hashbrown 0.17.1 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate
+  sha256:ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a
+memchr 2.7.6 (Unlicense OR MIT)
+  https://static.crates.io/crates/memchr/memchr-2.7.6.crate
+  sha256:f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273
+miniz_oxide 0.8.9 (MIT OR Zlib OR Apache-2.0)
+  https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.8.9.crate
+  sha256:1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316
+object 0.37.3 (Apache-2.0 OR MIT)
+  https://static.crates.io/crates/object/object-0.37.3.crate
+  sha256:ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe
+rustc-demangle 0.1.27 (MIT/Apache-2.0)
+  https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.27.crate
+  sha256:b50b8869d9fc858ce7266cce0194bd74df58b9d0e3f6df3a9fc8eb470d95c09d
+GCC 12.4.0 (GPL-3.0-or-later WITH GCC-exception-3.1)
+  https://gcc.gnu.org/pub/gcc/releases/gcc-12.4.0/gcc-12.4.0.tar.xz
+  sha256:704f652604ccbccb14bdabf3478c9511c89788b12cb3bbffded37341916a9175
+musl-cross-make 227df8b99103f9c59f6570babf892978e293082f
+  https://github.com/richfelker/musl-cross-make/archive/227df8b99103f9c59f6570babf892978e293082f.tar.gz
+  sha256:bb3fc7851088e1e5e1274ee56a0ab6ae176043d160fdf0b71027934b091f208a
+rust-musl-cross dd6e34ffc1cb5a142e762429cc11cfb4efbdd0e6
+  https://github.com/rust-cross/rust-musl-cross/archive/dd6e34ffc1cb5a142e762429cc11cfb4efbdd0e6.tar.gz
+  sha256:e6ff3e13b9da8bebd5381a1e612d1f011fbd12a60d4469c65b5d7df9cddc322f
