@@ -1,0 +1,78 @@
+# syntax=docker/dockerfile:1.27.0@sha256:bde3983e9c939224420ddaf6b784cc30e09b035a4dea01f581230c50809f372e
+# check=error=true
+
+ARG BASE_IMAGE=alpine:3.24
+
+FROM ${BASE_IMAGE} AS build
+RUN apk add --no-cache python3
+
+ARG VERSION
+# The sources of the libgcc_s in the musllinux wheels of rpds-py and regress:
+# the extra artifacts in package.yml, attached to each release. The build
+# stops when a wheel carries another library (scripts/check-libraries.py).
+ARG GCC_VERSION
+ARG GCC_URL
+ARG GCC_SHA256
+ARG MUSL_CROSS_MAKE_URL
+ARG MUSL_CROSS_MAKE_SHA256
+ARG RUST_MUSL_CROSS_URL
+ARG RUST_MUSL_CROSS_SHA256
+# The license in package.yml covers the license files of the vendored schemas
+# in schema-licenses.sha256; the build stops when a release adds, removes or
+# changes one of them.
+RUN --mount=type=bind,target=/src \
+    set -eu; \
+    : "${VERSION:?}" "${GCC_VERSION:?}" "${GCC_URL:?}" "${GCC_SHA256:?}" \
+      "${MUSL_CROSS_MAKE_URL:?}" "${MUSL_CROSS_MAKE_SHA256:?}" \
+      "${RUST_MUSL_CROSS_URL:?}" "${RUST_MUSL_CROSS_SHA256:?}"; \
+    if ! awk -v want="check-jsonschema==${VERSION}" '$1 == want { found = 1 } END { exit !found }' /src/requirements.lock; then \
+        echo "requirements.lock does not pin check-jsonschema==${VERSION}" >&2; exit 1; \
+    fi; \
+    venv=/usr/local/lib/check-jsonschema; \
+    meta=/usr/local/share/randomcontainers/check-jsonschema; \
+    python3 -m venv "$venv"; \
+    "$venv/bin/pip" install --no-cache-dir --disable-pip-version-check --no-input \
+        --require-hashes --no-deps --only-binary=:all: \
+        --report /tmp/pip-report.json -r /src/requirements.lock; \
+    installed="$("$venv/bin/check-jsonschema" --version)"; \
+    if [ "$installed" != "check-jsonschema, version ${VERSION}" ]; then \
+        echo "requirements.lock installs $installed, expected check-jsonschema ${VERSION}" >&2; exit 1; \
+    fi; \
+    ln -s "$venv/bin/check-jsonschema" /usr/local/bin/check-jsonschema; \
+    mkdir -p "$meta"; \
+    printf '%s\n' "$VERSION" > "$meta/version"; \
+    cp /src/runtime-deps.alpine "$meta/runtime-deps"; \
+    "$venv/bin/python" /src/scripts/metadata.py /tmp/pip-report.json "$meta" /src/licenses; \
+    rm /tmp/pip-report.json; \
+    "$venv/bin/python" /src/scripts/check-libraries.py "${GCC_VERSION}"; \
+    printf '%s\n' \
+      "${GCC_URL}#sha256=${GCC_SHA256}" \
+      "${MUSL_CROSS_MAKE_URL}#sha256=${MUSL_CROSS_MAKE_SHA256}" \
+      "${RUST_MUSL_CROSS_URL}#sha256=${RUST_MUSL_CROSS_SHA256}" \
+      "https://github.com/randomcontainers/check-jsonschema/releases/tag/v${VERSION}" \
+      >> "$meta/source"; \
+    vendor="$("$venv/bin/python" -c 'import os, check_jsonschema.builtin_schemas.vendor as m; print(os.path.dirname(m.__file__))')"; \
+    for path in "$vendor"/licenses/*; do \
+        sum="$(sha256sum < "$path")"; \
+        printf '%s  %s\n' "${sum%% *}" "${path##*/}"; \
+    done > /tmp/schema-licenses.sha256; \
+    if ! diff -u /src/schema-licenses.sha256 /tmp/schema-licenses.sha256 >&2; then \
+        echo "the license files of the vendored schemas changed, check the license in package.yml" >&2; exit 1; \
+    fi; \
+    rm /tmp/schema-licenses.sha256; \
+    mkdir "$meta/licenses/check-jsonschema/vendor-schemas"; \
+    cp "$vendor"/licenses/* "$vendor/README.md" "$meta/licenses/check-jsonschema/vendor-schemas/"
+
+FROM ${BASE_IMAGE} AS slim
+RUN --mount=type=bind,source=runtime-deps.alpine,target=/tmp/runtime-deps \
+    set -eu; \
+    xargs apk add --no-cache ca-certificates tini < /tmp/runtime-deps; \
+    addgroup -g 1000 app; \
+    adduser -D -u 1000 -G app app; \
+    install -d -m 1777 /work /cache
+COPY --link --from=build /usr/local/ /usr/local/
+ENV LANG=C.UTF-8 XDG_CACHE_HOME=/cache PYTHONUNBUFFERED=1
+WORKDIR /work
+USER 1000:1000
+ENTRYPOINT ["tini", "--", "check-jsonschema"]
+CMD ["--help"]

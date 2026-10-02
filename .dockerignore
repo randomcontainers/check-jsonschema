@@ -1,0 +1,7 @@
+*
+!licenses
+!requirements.lock
+!runtime-deps.*
+!schema-licenses.sha256
+!scripts/check-libraries.py
+!scripts/metadata.py
