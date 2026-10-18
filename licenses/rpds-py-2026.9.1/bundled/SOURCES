@@ -1,4 +1,4 @@
-rpds-py 2026.6.3 is a Rust extension module built with PyO3. Its Linux
+rpds-py 2026.9.1 is a Rust extension module built with PyO3. Its Linux
 wheels link a static build of the Rust crates below but include only
 rpds-py's own license. The crates are the dependencies of the extension
 crate rpds-py in the Cargo.lock of the source release that are linked on
@@ -8,15 +8,15 @@ archive on crates.io, and the license after each crate is the one it
 declares.
 
 The extension module also links the Rust standard library. Its .comment
-section reads "rustc version 1.96.0 (ac68faa20 2026-05-25)". The Rust entry
+section reads "rustc version 1.99.0 (b940084d7 2026-09-28)". The Rust entry
 below is the rust-src archive of that release, with the SHA-256 from its
-.sha256 file, and the rust-std-1.96.0 directory holds the license files of
+.sha256 file, and the rust-std-1.99.0 directory holds the license files of
 rust-lang/rust and every license file in the archive's library tree. Under
 the Rust entry are the standard library's own crates that have code in the
 extension module, with the licenses they declare. The crates after it are
 the standard library's dependencies from crates.io that have code in the
 module, checked against the checksums in its Cargo.lock; their license files
-are in rust-std-1.96.0 as well. Code is assigned to crates by the names of
+are in rust-std-1.99.0 as well. Code is assigned to crates by the names of
 the module's code units and the source paths in its panic messages.
 
 The musllinux wheels, which the Alpine image installs, also include
@@ -36,65 +36,65 @@ and the two repositories at the commits used. They are attached to the
 GitHub release of each version of the image, which the last line of the
 image's source file links to.
 
-rpds-py 2026.6.3
-  https://files.pythonhosted.org/packages/aa/2a/9618a122aeb2a169a28b03889a2995fe297588964333d4a7d67bdf46e147/rpds_py-2026.6.3.tar.gz
-  sha256:1cebd1337c242e4ec2293e541f712b2da849b29f48f0c293684b71c0632625d4
-archery 1.2.2 (MIT)
-  https://static.crates.io/crates/archery/archery-1.2.2.crate
-  sha256:70e0a5f99dfebb87bb342d0f53bb92c81842e100bbb915223e38349580e5441d
+rpds-py 2026.9.1
+  https://files.pythonhosted.org/packages/42/68/3bd46b8a5e01d3c2ebdf9c5e9497912e3fe0cde02bac21a7130ca866e403/rpds_py-2026.9.1.tar.gz
+  sha256:4793ef7f78268b124b73fa933440f01d258bbae01de9fa53e9080c9ab0425a12
+archery 1.2.3 (MIT)
+  https://static.crates.io/crates/archery/archery-1.2.3.crate
+  sha256:33ca55ee147b1926dbea904f50fe4902494e97bc742205abbbf10c709e43815f
 libc 0.2.177 (MIT OR Apache-2.0)
   https://static.crates.io/crates/libc/libc-0.2.177.crate
   sha256:2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976
 once_cell 1.21.3 (MIT OR Apache-2.0)
   https://static.crates.io/crates/once_cell/once_cell-1.21.3.crate
   sha256:42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d
-pyo3 0.29.0 (MIT OR Apache-2.0)
-  https://static.crates.io/crates/pyo3/pyo3-0.29.0.crate
-  sha256:cd274650b21d4bfc26a0a47587962c1edb425f69287324355cd040c3ea66071c
-pyo3-ffi 0.29.0 (MIT OR Apache-2.0)
-  https://static.crates.io/crates/pyo3-ffi/pyo3-ffi-0.29.0.crate
-  sha256:ca85c467da1bbc8d866eea5deff9cf29ea5f7785054a17da36e65bda9c05845b
+pyo3 0.29.3 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/pyo3/pyo3-0.29.3.crate
+  sha256:700d18fa267b73b9b521fd7e13580e2f446916f176cacee1ab63fcc8191f1655
+pyo3-ffi 0.29.3 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/pyo3-ffi/pyo3-ffi-0.29.3.crate
+  sha256:dfc0b8e19df29aad7086cf977bb0c2a2f143e30567eb113e9cf72b62ca698330
 rpds 1.2.1 (MIT)
   https://static.crates.io/crates/rpds/rpds-1.2.1.crate
   sha256:e025feb26210bc196b908e72deb063b1b4000754304341cbc168a1e72c857ebc
 smallvec 1.15.1 (MIT OR Apache-2.0)
   https://static.crates.io/crates/smallvec/smallvec-1.15.1.crate
   sha256:67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03
-triomphe 0.1.15 (MIT OR Apache-2.0)
-  https://static.crates.io/crates/triomphe/triomphe-0.1.15.crate
-  sha256:dd69c5aa8f924c7519d6372789a74eac5b94fb0f8fcf0d4a97eb0bfc3e785f39
-Rust 1.96.0 standard library
-  https://static.rust-lang.org/dist/rust-src-1.96.0.tar.xz
-  sha256:7875f9f4b91455ac25e2ea0e0f1cb3d7d16c309ef0720778538d20ed0e9b818b
+triomphe 0.1.16 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/triomphe/triomphe-0.1.16.crate
+  sha256:b40688ea6389c8171614b25491f71d4a27946e0c7ce2da1c6de27e25abf1a0ae
+Rust 1.99.0 standard library
+  https://static.rust-lang.org/dist/rust-src-1.99.0.tar.xz
+  sha256:3f1f9b7ed48f4596fc87889b7b3c61747336a55c9c22db1ab0c697e0aadb77aa
   alloc (MIT OR Apache-2.0)
   compiler_builtins (MIT AND Apache-2.0 WITH LLVM-exception AND (MIT OR Apache-2.0))
   core (MIT OR Apache-2.0)
   panic_unwind (MIT OR Apache-2.0)
   std (MIT OR Apache-2.0)
-addr2line 0.25.1 (Apache-2.0 OR MIT)
-  https://static.crates.io/crates/addr2line/addr2line-0.25.1.crate
-  sha256:1b5d307320b3181d6d7954e663bd7c774a838b8220fe0593c86d9fb09f498b4b
+addr2line 0.27.1 (Apache-2.0 OR MIT)
+  https://static.crates.io/crates/addr2line/addr2line-0.27.1.crate
+  sha256:e567177890eb1617b1f774005b66b26b2377afd138a2ca37aae7d8f0c81429d4
 adler2 2.0.1 (0BSD OR MIT OR Apache-2.0)
   https://static.crates.io/crates/adler2/adler2-2.0.1.crate
   sha256:320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa
-gimli 0.32.3 (MIT OR Apache-2.0)
-  https://static.crates.io/crates/gimli/gimli-0.32.3.crate
-  sha256:e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7
-hashbrown 0.16.1 (MIT OR Apache-2.0)
-  https://static.crates.io/crates/hashbrown/hashbrown-0.16.1.crate
-  sha256:841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100
-memchr 2.7.6 (Unlicense OR MIT)
-  https://static.crates.io/crates/memchr/memchr-2.7.6.crate
-  sha256:f52b00d39961fc5b2736ea853c9cc86238e165017a493d1d5c8eac6bdc4cc273
-miniz_oxide 0.8.9 (MIT OR Zlib OR Apache-2.0)
-  https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.8.9.crate
-  sha256:1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316
-object 0.37.3 (Apache-2.0 OR MIT)
-  https://static.crates.io/crates/object/object-0.37.3.crate
-  sha256:ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe
-rustc-demangle 0.1.27 (MIT/Apache-2.0)
-  https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.27.crate
-  sha256:b50b8869d9fc858ce7266cce0194bd74df58b9d0e3f6df3a9fc8eb470d95c09d
+gimli 0.34.0 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/gimli/gimli-0.34.0.crate
+  sha256:1033caf0b349c518623b5396bfb2cf0bddf44f0306d543a250e5743297aafd10
+hashbrown 0.17.1 (MIT OR Apache-2.0)
+  https://static.crates.io/crates/hashbrown/hashbrown-0.17.1.crate
+  sha256:ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a
+memchr 2.8.3 (Unlicense OR MIT)
+  https://static.crates.io/crates/memchr/memchr-2.8.3.crate
+  sha256:cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98
+miniz_oxide 0.9.1 (MIT OR Zlib OR Apache-2.0)
+  https://static.crates.io/crates/miniz_oxide/miniz_oxide-0.9.1.crate
+  sha256:b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c
+object 0.39.1 (Apache-2.0 OR MIT)
+  https://static.crates.io/crates/object/object-0.39.1.crate
+  sha256:2e5a6c098c7a3b6547378093f5cc30bc54fd361ce711e05293a5cc589562739b
+rustc-demangle 0.1.28 (MIT/Apache-2.0)
+  https://static.crates.io/crates/rustc-demangle/rustc-demangle-0.1.28.crate
+  sha256:b74b56ffa8bb2830709a538c2cbcae9aa062db0d2a42563bfb09bdaae44020eb
 GCC 12.4.0 (GPL-3.0-or-later WITH GCC-exception-3.1)
   https://gcc.gnu.org/pub/gcc/releases/gcc-12.4.0/gcc-12.4.0.tar.xz
   sha256:704f652604ccbccb14bdabf3478c9511c89788b12cb3bbffded37341916a9175
