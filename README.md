@@ -178,7 +178,7 @@ rpds-py and regress are Rust extension modules. Their wheels link static builds 
 
 The musllinux wheels, which the Alpine image installs, also include a copy of libgcc_s, the GCC runtime library that the Rust code uses for unwinding. It is licensed under GPL-3.0-or-later with the GCC Runtime Library Exception 3.1, and both texts are in the same `bundled/` directories. The copies come from the `ghcr.io/rust-cross/rust-musl-cross` images that built the wheels, where GCC 12.4.0 is compiled by musl-cross-make, which applies its own patches to GCC, with the build configuration of rust-musl-cross. Every release of this repository, named `v<version>` after the check-jsonschema version, has the corresponding source attached: `gcc-12.4.0.tar.xz` with its signature, and the musl-cross-make and rust-musl-cross repositories at the commits that built the library, as `<commit>.tar.gz`. All three are pinned under `extra-artifacts` in `package.yml`, and `SOURCES` explains how the library was matched to them. In the Alpine image, the last lines of `/usr/local/share/randomcontainers/check-jsonschema/source` name the three archives and the release.
 
-The files in this repository are available under the MIT license, see [LICENSE](LICENSE).
+The files in this repository are available under the MIT license, see [LICENSE](LICENSE), except the license texts in `licenses/`, which keep their own terms.
 
 ## Requesting a tool
 
