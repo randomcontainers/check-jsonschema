@@ -17,7 +17,7 @@ upstream:
   tag-pattern: '^(\d+\.\d+\.\d+)$'
   version-template: '{1}'
   versioning: semver
-  version: 0.38.2
+  version: 0.39.0
   cooldown: 24h
   publisher: python-jsonschema/check-jsonschema
   # The sources of the libgcc_s in the musllinux wheels of rpds-py and regress:
