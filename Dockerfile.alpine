@@ -66,7 +66,7 @@ RUN --mount=type=bind,target=/src \
 FROM ${BASE_IMAGE} AS slim
 RUN --mount=type=bind,source=runtime-deps.alpine,target=/tmp/runtime-deps \
     set -eu; \
-    xargs apk add --no-cache ca-certificates tini < /tmp/runtime-deps; \
+    xargs apk add --no-cache ca-certificates tini tzdata < /tmp/runtime-deps; \
     addgroup -g 1000 app; \
     adduser -D -u 1000 -G app app; \
     install -d -m 1777 /work /cache
